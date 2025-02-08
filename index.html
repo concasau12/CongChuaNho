@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chèn Chữ Chìm vào Nhiều Ảnh</title>
+    <title>Chèn Chữ Cho EMBE</title>
     <style>
         body {
             text-align: center;
@@ -43,16 +43,23 @@
     </style>
 </head>
 <body>
-    <h2>Chèn Chữ Chìm vào Nhiều Ảnh</h2>
+    <h2>Chèn Chữ Cho EMBE</h2>
     <input type="file" id="upload" accept="image/*" multiple>
     <div class="image-container" id="imageContainer"></div>
+    <button id="downloadAllBtn" class="download-btn" style="display: none; margin-top: 20px;">
+        Tải tất cả ảnh
+    </button>
 
     <script>
         document.getElementById('upload').addEventListener('change', function(event) {
             const files = event.target.files;
             if (!files.length) return;
             const imageContainer = document.getElementById('imageContainer');
+            const downloadAllBtn = document.getElementById('downloadAllBtn');
             imageContainer.innerHTML = '';
+            downloadAllBtn.style.display = 'none'; // Ẩn nút khi chưa có ảnh nào
+
+            let images = [];
 
             Array.from(files).forEach((file) => {
                 const reader = new FileReader();
@@ -70,16 +77,37 @@
                         imageItem.classList.add('image-item');
                         imageItem.appendChild(canvas);
 
-                        createDownloadButton(canvas, file.name).then((downloadBtn) => {
-                            imageItem.appendChild(downloadBtn);
-                        });
-
                         imageContainer.appendChild(imageItem);
+
+                        // Lưu thông tin ảnh để tải sau
+                        canvas.toBlob((blob) => {
+                            images.push({ blob, name: `watermarked_${file.name}` });
+
+                            // Hiện nút tải tất cả khi có ảnh
+                            if (images.length === files.length) {
+                                downloadAllBtn.style.display = 'block';
+                            }
+                        }, 'image/png');
                     };
                     img.src = e.target.result;
                 };
                 reader.readAsDataURL(file);
             });
+
+            downloadAllBtn.onclick = function() {
+                images.forEach((img, index) => {
+                    setTimeout(() => {
+                        const url = URL.createObjectURL(img.blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = img.name;
+                        document.body.appendChild(a);
+                        a.click();
+                        a.remove();
+                        URL.revokeObjectURL(url);
+                    }, index * 1000); // Giãn cách 1 giây mỗi lần tải
+                });
+            };
         });
 
         function addWatermark(ctx, canvas) {
@@ -104,24 +132,6 @@
                 }
             }
             ctx.restore();
-        }
-
-        function createDownloadButton(canvas, fileName) {
-            return new Promise((resolve) => {
-                canvas.toBlob((blob) => {
-                    const url = URL.createObjectURL(blob);
-                    const downloadBtn = document.createElement('a');
-                    downloadBtn.classList.add('download-btn');
-                    downloadBtn.innerText = 'Tải ảnh';
-                    downloadBtn.href = url;
-                    downloadBtn.download = `watermarked_${fileName}`;
-
-                    downloadBtn.addEventListener('click', () => {
-                        setTimeout(() => URL.revokeObjectURL(url), 1000);
-                    });
-                    resolve(downloadBtn);
-                }, 'image/png');
-            });
         }
     </script>
 </body>
