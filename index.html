@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chèn Chữ Chìm vào Nhiều Ảnh</title>
+    <title>Chèn Chữ Cho EMBE</title>
     <style>
         body {
             text-align: center;
@@ -43,7 +43,7 @@
     </style>
 </head>
 <body>
-    <h2>Chèn Chữ Chìm vào Nhiều Ảnh</h2>
+    <h2>Chèn Chữ Cho EMBE</h2>
     <input type="file" id="upload" accept="image/*" multiple>
     <div class="image-container" id="imageContainer"></div>
 
@@ -70,12 +70,24 @@
                         imageItem.classList.add('image-item');
                         imageItem.appendChild(canvas);
                         
-                        const downloadBtn = document.createElement('a');
+                        const downloadBtn = document.createElement('button');
                         downloadBtn.classList.add('download-btn');
                         downloadBtn.innerText = 'Tải ảnh';
-                        downloadBtn.href = canvas.toDataURL('image/png');
-                        downloadBtn.download = `watermarked_${file.name}`;
                         
+                        // Xử lý tải ảnh khi nhấn nút
+                        downloadBtn.addEventListener('click', function() {
+                            canvas.toBlob((blob) => {
+                                const url = URL.createObjectURL(blob);
+                                const a = document.createElement('a');
+                                a.href = url;
+                                a.download = `watermarked_${file.name}`;
+                                document.body.appendChild(a);
+                                a.click();
+                                document.body.removeChild(a);
+                                URL.revokeObjectURL(url);
+                            }, 'image/png');
+                        });
+
                         imageItem.appendChild(downloadBtn);
                         imageContainer.appendChild(imageItem);
                     };
